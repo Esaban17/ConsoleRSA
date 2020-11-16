@@ -18,6 +18,12 @@ namespace ConsoleRSA
             string pathEncryption = @$"C:\Users\Usuario\Desktop\Archivos de Prueba\Encryptions";
             string pathDecryption = @$"C:\Users\Usuario\Desktop\Archivos de Prueba\Decryptions";
 
+            //RUTA SABAN
+            //string filePath = @$"C:\Users\DELL\Desktop\Archivos de Prueba\{name}";
+            //string pathEncryption = @$"C:\Users\DELL\Desktop\Archivos de Prueba\Encryptions";
+            //string pathDecryption = @$"C:\Users\DELL\Desktop\Archivos de Prueba\Decryptions";
+
+
             var timer2 = new Stopwatch();
             timer2.Start();
             encryptor.Encrypt(filePath, fileName, pathEncryption, keys.e, keys.n);
