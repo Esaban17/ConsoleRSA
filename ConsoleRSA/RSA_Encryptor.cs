@@ -10,16 +10,146 @@ namespace ConsoleRSA
     class RSA_Encryptor
     {
         public static int buffer = 100000;
-      
+        string publicKeypath = @"\Keys\public.key";
+        string privateKeypath = @"\Keys\private.key";
+
+
         List<int> byteOutputList = new List<int>();
         public (int e, int d, int n) GenerateKeys(int p, int q)
         {
+            string workingDirectory = Environment.CurrentDirectory;
+            string projectDirectory = Directory.GetParent(workingDirectory).Parent.Parent.FullName;
             int n = p * q;
             int phi = (p - 1) * (q - 1);
             int e = GenerateE(phi);
             int d = GenerateD(phi, phi, e, 1, phi);
-           
+
+            //Generate Private Key file
+            using (var Fs = new FileStream(projectDirectory + publicKeypath, FileMode.OpenOrCreate))
+            {
+                using (var Bw = new BinaryWriter(Fs))
+                {
+                    string binaryKey = Convert.ToString(e, 2);
+                    Bw.Write(Convert.ToByte(binaryKey.Length));
+                    while (binaryKey.Length >= 8)
+                    {
+                        var character = Convert.ToByte(binaryKey.Substring(0, 8), 2);
+                        Bw.Write(character);
+                        binaryKey = binaryKey.Remove(0, 8);
+                    }
+                    if (binaryKey.Length > 0)
+                    {
+                        var character = Convert.ToByte(binaryKey.PadRight(8, '0'), 2);
+                        Bw.Write(character);
+                    }
+
+                    string binaryKeyN = Convert.ToString(n, 2);
+                    Bw.Write(Convert.ToByte(binaryKeyN.Length));
+                    while (binaryKeyN.Length >= 8)
+                    {
+                        var character = Convert.ToByte(binaryKeyN.Substring(0, 8), 2);
+                        Bw.Write(character);
+                        binaryKeyN = binaryKeyN.Remove(0, 8);
+                    }
+                    if (binaryKeyN.Length > 0)
+                    {
+                        var character = Convert.ToByte(binaryKeyN.PadRight(8, '0'), 2);
+                        Bw.Write(character);
+                    }
+
+                    Bw.Close();
+                };
+                Fs.Close();
+            };
+            //Generate Public Key file
+            using (var Fs = new FileStream(projectDirectory + privateKeypath, FileMode.OpenOrCreate))
+            {
+                using (var Bw = new BinaryWriter(Fs))
+                {
+                    string binaryKey = Convert.ToString(d, 2);
+                    Bw.Write(Convert.ToByte(binaryKey.Length));
+                    while (binaryKey.Length >= 8)
+                    {
+                        var character = Convert.ToByte(binaryKey.Substring(0, 8), 2);
+                        Bw.Write(character);
+                        binaryKey = binaryKey.Remove(0, 8);
+                    }
+                    if (binaryKey.Length > 0)
+                    {
+                        var character = Convert.ToByte(binaryKey.PadRight(8, '0'), 2);
+                        Bw.Write(character);
+                    }
+
+                    string binaryKeyN = Convert.ToString(n, 2);
+                    Bw.Write(Convert.ToByte(binaryKeyN.Length));
+                    while (binaryKeyN.Length >= 8)
+                    {
+                        var character = Convert.ToByte(binaryKeyN.Substring(0, 8), 2);
+                        Bw.Write(character);
+                        binaryKeyN = binaryKeyN.Remove(0, 8);
+                    }
+                    if (binaryKeyN.Length > 0)
+                    {
+                        var character = Convert.ToByte(binaryKeyN.PadRight(8, '0'), 2);
+                        Bw.Write(character);
+                    }
+
+                    Bw.Close();
+                };
+                Fs.Close();
+            };
+
+            string startPath = projectDirectory + @"\Keys";
+            string zipPath = projectDirectory + @"\BundledKeys\Keys.zip";
+            ZipFile.CreateFromDirectory(startPath, zipPath);
+
             return (e, d, n);
+        }
+        public (int key, int keyN) GetKeysFromFile(string path)
+        {
+            string workingDirectory = Environment.CurrentDirectory;
+            string projectDirectory = Directory.GetParent(workingDirectory).Parent.Parent.FullName;
+            int key = 0, keyN = 0;
+            using (var Fs = new FileStream(projectDirectory + path, FileMode.Open))
+            {
+                using (var Br = new BinaryReader(Fs))
+                {
+                    int KeySizeBits = Br.ReadByte();
+                    int KeySizeBytes = (int)Math.Ceiling((double)KeySizeBits / 8);
+                    var Bytes = new byte[KeySizeBytes];
+                    Bytes = Br.ReadBytes(KeySizeBytes);
+
+                    string tempVal = "";
+                    foreach (var item in Bytes)
+                    {
+                        tempVal += Convert.ToString(item, 2).PadLeft(8, '0');
+                        if (tempVal.Length >= KeySizeBits)
+                        {
+                            key = Convert.ToInt32(tempVal.Substring(0, KeySizeBits), 2);
+                        }
+                    }
+
+                    int KeySizeBitsN = Br.ReadByte();
+                    int KeySizeBytesN = (int)Math.Ceiling((double)KeySizeBitsN / 8);
+                    Bytes = new byte[KeySizeBytesN];
+                    Bytes = Br.ReadBytes(KeySizeBytesN);
+
+
+                    tempVal = "";
+                    foreach (var item in Bytes)
+                    {
+                        tempVal += Convert.ToString(item, 2).PadLeft(8, '0');
+                        if (tempVal.Length >= KeySizeBitsN)
+                        {
+                            keyN = Convert.ToInt32(tempVal.Substring(0, KeySizeBitsN), 2);
+                        }
+                    }
+
+                    Br.Close();
+                };
+                Fs.Close();
+            };
+            return (key, keyN);
         }
         public void Encrypt(string filePath, string[] fileName, string pathEncryption, int key, int n)
         {
@@ -105,7 +235,7 @@ namespace ConsoleRSA
                             int maxBitSize = Convert.ToString(n, 2).Length;
                             while (Br.BaseStream.Position != Br.BaseStream.Length)
                             {
-                               var bytes = new byte[buffer];
+                                var bytes = new byte[buffer];
                                 bytes = Br.ReadBytes(buffer);
                                 foreach (var item in bytes)
                                 {
@@ -206,7 +336,7 @@ namespace ConsoleRSA
                 do
                 {
                     result2 += phi;
-                } while (result2<0);
+                } while (result2 < 0);
             }
             if (result1 == 1)
             {
@@ -214,7 +344,7 @@ namespace ConsoleRSA
             }
             return GenerateD(e, d, result1, result2, phi);
         }
-        
+
         public int Cipher(int entry, int key, int n)
         {
             BigInteger x = BigInteger.Pow(entry, key);
