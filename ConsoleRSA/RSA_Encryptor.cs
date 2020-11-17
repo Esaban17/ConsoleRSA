@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Text;
+using System.IO.Compression;
 
 namespace ConsoleRSA
 {
     class RSA_Encryptor
     {
         public static int buffer = 100000;
-        int largest = 0;
-
+      
         List<int> byteOutputList = new List<int>();
         public (int e, int d, int n) GenerateKeys(int p, int q)
         {
@@ -18,6 +18,7 @@ namespace ConsoleRSA
             int phi = (p - 1) * (q - 1);
             int e = GenerateE(phi);
             int d = GenerateD(phi, phi, e, 1, phi);
+           
             return (e, d, n);
         }
         public void Encrypt(string filePath, string[] fileName, string pathEncryption, int key, int n)
@@ -37,16 +38,12 @@ namespace ConsoleRSA
                                 foreach (var item in bytes)
                                 {
                                     int newVal = Cipher(item, key, n);
-                                    if (newVal > largest)
-                                    {
-                                        largest = newVal;
-                                    }
                                     byteOutputList.Add(newVal);
                                 }
                             }
-                            int maxBitSize = Convert.ToString(largest, 2).Length;
+                            int maxBitSize = Convert.ToString(n, 2).Length;
                             string tempCode = "";
-                            Bw.Write(Convert.ToByte(maxBitSize));
+                            //Bw.Write(Convert.ToByte(maxBitSize));
 
                             while (byteOutputList.Count > 0)
                             {
@@ -101,13 +98,14 @@ namespace ConsoleRSA
                         using (var Bw = new BinaryWriter(Fs2))
                         {
                             List<int> outputValsList = new List<int>();
-                            var bytes = new byte[1];
+                            //var bytes = new byte[1];
                             string tempVal = "";
-                            bytes = Br.ReadBytes(1);
-                            int maxBitSize = Convert.ToInt32(bytes[0]);
+                            //bytes = Br.ReadBytes(1);
+                            //int maxBitSize = Convert.ToInt32(bytes[0]);
+                            int maxBitSize = Convert.ToString(n, 2).Length;
                             while (Br.BaseStream.Position != Br.BaseStream.Length)
                             {
-                                bytes = new byte[buffer];
+                               var bytes = new byte[buffer];
                                 bytes = Br.ReadBytes(buffer);
                                 foreach (var item in bytes)
                                 {
@@ -205,7 +203,10 @@ namespace ConsoleRSA
             int result2 = phi2 - d * division;
             if (result2 < 0)
             {
-                result2 = result2 + phi;
+                do
+                {
+                    result2 += phi;
+                } while (result2<0);
             }
             if (result1 == 1)
             {
@@ -213,6 +214,7 @@ namespace ConsoleRSA
             }
             return GenerateD(e, d, result1, result2, phi);
         }
+        
         public int Cipher(int entry, int key, int n)
         {
             BigInteger x = BigInteger.Pow(entry, key);

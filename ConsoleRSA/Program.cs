@@ -28,7 +28,7 @@ namespace ConsoleRSA
             timer2.Start();
             encryptor.Encrypt(filePath, fileName, pathEncryption, keys.e, keys.n);
             encryptor.Decrypt($@"{pathEncryption}\{fileName[0]}.rsa", fileName, pathDecryption, keys.d, keys.n);
-            
+
             timer2.Stop();
             Console.WriteLine("TIME ELAPSED MILISECONDS: " + timer2.ElapsedMilliseconds);
 
