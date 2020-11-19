@@ -14,7 +14,6 @@ namespace ConsoleRSA
         string privateKeypath = @"\Keys\private.key";
 
 
-        List<int> byteOutputList = new List<int>();
         public (int e, int d, int n) GenerateKeys(int p, int q)
         {
             string workingDirectory = Environment.CurrentDirectory;
@@ -161,53 +160,37 @@ namespace ConsoleRSA
                     {
                         using (var Bw = new BinaryWriter(Fs2))
                         {
+                            int maxBitSize = Convert.ToString(n, 2).Length;
                             var bytes = new byte[buffer];
+                            string tempCode = "";
                             while (Br.BaseStream.Position != Br.BaseStream.Length)
                             {
                                 bytes = Br.ReadBytes(buffer);
+
                                 foreach (var item in bytes)
                                 {
                                     int newVal = Cipher(item, key, n);
-                                    byteOutputList.Add(newVal);
-                                }
-                            }
-                            int maxBitSize = Convert.ToString(n, 2).Length;
-                            string tempCode = "";
-                            //Bw.Write(Convert.ToByte(maxBitSize));
+                                    tempCode += Convert.ToString(newVal, 2).PadLeft(maxBitSize, '0');
+                             
+                                    while (tempCode.Length >= 8)
+                                    {
+                                        var decimalNumber = Convert.ToInt32(tempCode.Substring(0, 8), 2);
+                                        var character = Convert.ToByte(decimalNumber);
+                                        Bw.Write(character);
+                                        tempCode = tempCode.Remove(0, 8);
+                                    }
 
-                            while (byteOutputList.Count > 0)
-                            {
-                                tempCode += Convert.ToString(byteOutputList[0], 2).PadLeft(maxBitSize, '0');
-                                byteOutputList.RemoveAt(0);
-                                if (byteOutputList.Count == 0)
-                                {
-                                    while (tempCode.Length >= 8)
-                                    {
-                                        var decimalNumber = Convert.ToInt32(tempCode.Substring(0, 8), 2);
-                                        var character = Convert.ToByte(decimalNumber);
-                                        Bw.Write(character);
-                                        tempCode = tempCode.Remove(0, 8);
-                                    }
-                                    if (tempCode.Length > 0)
-                                    {
-                                        tempCode = tempCode.PadRight(8, '0');
-                                        var decimalNumber = Convert.ToInt32(tempCode.Substring(0, 8), 2);
-                                        var character = Convert.ToByte(decimalNumber);
-                                        Bw.Write(character);
-                                        tempCode = tempCode.Remove(0, 8);
-                                    }
-                                }
-                                if (tempCode.Length >= 8)
-                                {
-                                    while (tempCode.Length >= 8)
-                                    {
-                                        var decimalNumber = Convert.ToInt32(tempCode.Substring(0, 8), 2);
-                                        var character = Convert.ToByte(decimalNumber);
-                                        Bw.Write(character);
-                                        tempCode = tempCode.Remove(0, 8);
-                                    }
                                 }
                             }
+                            if (tempCode.Length > 0)
+                            {
+                                tempCode = tempCode.PadRight(8, '0');
+                                var decimalNumber = Convert.ToInt32(tempCode.Substring(0, 8), 2);
+                                var character = Convert.ToByte(decimalNumber);
+                                Bw.Write(character);
+                                tempCode = tempCode.Remove(0, 8);
+                            }
+
                             Bw.Close();
                         };
                         Fs2.Close();
@@ -351,11 +334,5 @@ namespace ConsoleRSA
             BigInteger BigN = new BigInteger(n);
             return (int)(x % BigN);
         }
-        //public int Decipher(int entrada, int d, int n)
-        //{
-        //    BigInteger x = BigInteger.Pow(entrada, d);
-        //    var BigN = new BigInteger(n);
-        //    return (int)(x % BigN);
-        //}
     }
 }
