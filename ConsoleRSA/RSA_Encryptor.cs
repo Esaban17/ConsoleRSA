@@ -99,6 +99,10 @@ namespace ConsoleRSA
             };
 
             string startPath = projectDirectory + @"\Keys";
+            if (File.Exists(projectDirectory + @"\BundledKeys\Keys.zip"))
+            {
+                File.Delete(projectDirectory + @"\BundledKeys\Keys.zip");
+            }
             string zipPath = projectDirectory + @"\BundledKeys\Keys.zip";
             ZipFile.CreateFromDirectory(startPath, zipPath);
 
