@@ -13,7 +13,6 @@ namespace ConsoleRSA
         string publicKeypath = @"\Keys\public.key";
         string privateKeypath = @"\Keys\private.key";
 
-
         public (int e, int d, int n) GenerateKeys(int p, int q)
         {
             string workingDirectory = Environment.CurrentDirectory;
@@ -175,7 +174,7 @@ namespace ConsoleRSA
                                 {
                                     int newVal = Cipher(item, key, n);
                                     tempCode += Convert.ToString(newVal, 2).PadLeft(maxBitSize, '0');
-                             
+
                                     while (tempCode.Length >= 8)
                                     {
                                         var decimalNumber = Convert.ToInt32(tempCode.Substring(0, 8), 2);
@@ -215,10 +214,7 @@ namespace ConsoleRSA
                         using (var Bw = new BinaryWriter(Fs2))
                         {
                             List<int> outputValsList = new List<int>();
-                            //var bytes = new byte[1];
                             string tempVal = "";
-                            //bytes = Br.ReadBytes(1);
-                            //int maxBitSize = Convert.ToInt32(bytes[0]);
                             int maxBitSize = Convert.ToString(n, 2).Length;
                             while (Br.BaseStream.Position != Br.BaseStream.Length)
                             {
@@ -243,8 +239,6 @@ namespace ConsoleRSA
                                 Bw.Write(Convert.ToByte(Cipher(outputValsList[0], key, n)));
                                 outputValsList.RemoveAt(0);
                             }
-
-
                             Bw.Close();
                         };
                         Fs2.Close();
@@ -331,7 +325,6 @@ namespace ConsoleRSA
             }
             return GenerateD(e, d, result1, result2, phi);
         }
-
         public int Cipher(int entry, int key, int n)
         {
             BigInteger x = BigInteger.Pow(entry, key);
